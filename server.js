@@ -127,4 +127,39 @@ app.post("/login", middleware.validateUserData, (req, res) => {
   );
 });
 
+app.post("/beers", middleware.isLoggedIn, (req, res) => {
+  con.query(
+    `INSERT INTO beers (user_id, title, style, alcohol, IBU) VALUES ('${
+      req.userData.userId
+    }', ${mysql.escape(req.body.title)}, ${mysql.escape(
+      req.body.style
+    )}, ${mysql.escape(req.body.alcohol)}, ${mysql.escape(req.body.IBU)})`,
+    (err, result) => {
+      if (err) {
+        res.status(400).json(err);
+      } else {
+        res
+          .status(201)
+          .json({ msg: "Successfully added the beer to the database!" });
+      }
+    }
+  );
+});
+
+app.get("/beers", middleware.isLoggedIn, (req, res) => {
+  con.query(
+    `SELECT id, title , style, alcohol, IBU FROM beers WHERE user_id = ${req.userData.userId}`,
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        return res
+          .status(400)
+          .json({ msg: "Internal server error gathering beers details" });
+      } else {
+        return res.status(200).json(result);
+      }
+    }
+  );
+});
+
 app.listen(port, () => console.log(`Server is running on port ${port}`));
