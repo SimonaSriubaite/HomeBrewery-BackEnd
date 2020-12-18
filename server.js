@@ -162,4 +162,62 @@ app.get("/beers", middleware.isLoggedIn, (req, res) => {
   );
 });
 
+app.post("/changebeerquantity", middleware.isLoggedIn, (req, res) => {
+  if (req.body.beerId && req.body.quantityChange) {
+    con.query(
+      `INSERT INTO beer_qty (user_id, beer_id, change_qty) VALUES (${
+        req.userData.userId
+      }, ${mysql.escape(req.body.beerId)}, ${mysql.escape(
+        req.body.quantityChange
+      )})`,
+      (err) => {
+        if (err) {
+          console.log(err);
+          return res
+            .status(400)
+            .json({ msg: "Server error adding beer quantity" });
+        } else {
+          return res.status(201).json({ msg: "Beer Quantity change added!" });
+        }
+      }
+    );
+  } else {
+    return res.status(400).json({ msg: "Passed values are incorrect" });
+  }
+});
+
+app.get("/viewbeerquantity", middleware.isLoggedIn, (req, res) => {
+  con.query(
+    `SELECT beers.id, beers.title, beers.style, beers.alcohol, beers.IBU, SUM(beer_qty.change_qty) as Total FROM beer_qty
+     INNER JOIN beers ON beer_qty.beer_id = beers.id
+     WHERE beer_qty.user_id = '${req.userData.userId}'
+     GROUP BY beer_qty.beer_id`,
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.status(400).json({ msg: "Issue retrieving beer quantity" });
+      } else {
+        res.json(result);
+      }
+    }
+  );
+});
+
+app.delete("/delete/:id", (req, res) => {
+  if (req.body.pass === "delete") {
+    con.query(
+      `DELETE FROM beers WHERE id = '${req.params.id}'`,
+      (err, result) => {
+        if (err) {
+          res.status(400).json(err);
+        } else {
+          res.json(result);
+        }
+      }
+    );
+  } else {
+    res.status(400).send("Bad request");
+  }
+});
+
 app.listen(port, () => console.log(`Server is running on port ${port}`));
