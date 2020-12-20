@@ -129,11 +129,13 @@ app.post("/login", middleware.validateUserData, (req, res) => {
 
 app.post("/beers", middleware.isLoggedIn, (req, res) => {
   con.query(
-    `INSERT INTO beers (user_id, title, style, alcohol, IBU) VALUES ('${
+    `INSERT INTO beers (user_id, title, style, image, alcohol, IBU ) VALUES ('${
       req.userData.userId
     }', ${mysql.escape(req.body.title)}, ${mysql.escape(
       req.body.style
-    )}, ${mysql.escape(req.body.alcohol)}, ${mysql.escape(req.body.IBU)})`,
+    )}, ${mysql.escape(req.body.image)}, ${mysql.escape(
+      req.body.alcohol
+    )}, ${mysql.escape(req.body.IBU)})`,
     (err, result) => {
       if (err) {
         res.status(400).json(err);
@@ -148,7 +150,7 @@ app.post("/beers", middleware.isLoggedIn, (req, res) => {
 
 app.get("/beers", middleware.isLoggedIn, (req, res) => {
   con.query(
-    `SELECT id, title , style, alcohol, IBU FROM beers WHERE user_id = ${req.userData.userId}`,
+    `SELECT id, title , style, image, alcohol, IBU FROM beers WHERE user_id = ${req.userData.userId}`,
     (err, result) => {
       if (err) {
         console.log(err);
